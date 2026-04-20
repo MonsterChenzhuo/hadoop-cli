@@ -19,5 +19,13 @@ func NewRootCmd() *cobra.Command {
 	root.PersistentFlags().String("inventory", "cluster.yaml", "path to cluster inventory YAML")
 	root.PersistentFlags().String("log-level", "info", "log level: debug|info|warn|error")
 	root.PersistentFlags().Bool("no-color", false, "disable color in stderr progress output")
+
+	root.AddCommand(newPreflightCmd())
+	root.AddCommand(newInstallCmd())
+	root.AddCommand(newConfigureCmd())
+	root.AddCommand(newStartCmd())
+	root.AddCommand(newStopCmd())
+	root.AddCommand(newStatusCmd())
+	root.AddCommand(newUninstallCmd())
 	return root
 }

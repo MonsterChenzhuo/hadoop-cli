@@ -1,0 +1,35 @@
+package cmd
+
+import (
+	"github.com/hadoop-cli/hadoop-cli/internal/output"
+	"github.com/spf13/cobra"
+)
+
+func newStopCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:   "stop",
+		Short: "Stop the cluster in reverse order: HBase -> HDFS -> ZK.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			rc, err := prepare(cmd, "stop")
+			if err != nil {
+				return err
+			}
+			defer rc.Pool.Close()
+			component, _ := cmd.Flags().GetString("component")
+			ctx := backgroundCtx(cmd)
+			env := output.NewEnvelope("stop").WithRunID(rc.Env.Run.ID)
+			for _, comp := range componentsFor(component, true, false) {
+				rc.Progress.Infof("", "stopping %s ...", comp.Name())
+				aggregate(env, comp.Stop(ctx, rc.Env))
+			}
+			_ = rc.Env.Run.SaveResult(env)
+			writeEnvelope(env)
+			if !env.OK {
+				return errFromEnvelope(env)
+			}
+			return nil
+		},
+	}
+	c.Flags().String("component", "", "limit to one component: zookeeper|hdfs|hbase")
+	return c
+}
