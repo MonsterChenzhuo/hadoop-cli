@@ -1,0 +1,25 @@
+package cmd
+
+import (
+	"github.com/spf13/cobra"
+)
+
+var Version = "0.1.0-dev"
+
+func NewRootCmd() *cobra.Command {
+	root := &cobra.Command{
+		Use:           "hadoop-cli",
+		Short:         "hadoop-cli bootstraps and manages HBase clusters (HDFS + ZooKeeper + HBase).",
+		Long:          "hadoop-cli is a single-binary CLI that installs, configures, starts, stops, and uninstalls an HBase cluster over SSH, driven by a YAML inventory.",
+		Version:       Version,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
+		},
+	}
+	root.PersistentFlags().String("inventory", "cluster.yaml", "path to cluster inventory YAML")
+	root.PersistentFlags().String("log-level", "info", "log level: debug|info|warn|error")
+	root.PersistentFlags().Bool("no-color", false, "disable color in stderr progress output")
+	return root
+}
