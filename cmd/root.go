@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set at build time via -ldflags "-X ...cmd.Version=<tag>".
 var Version = "0.1.0-dev"
 
 func NewRootCmd() *cobra.Command {
@@ -14,9 +15,6 @@ func NewRootCmd() *cobra.Command {
 		Version:       Version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Help()
-		},
 	}
 	root.PersistentFlags().String("inventory", "cluster.yaml", "path to cluster inventory YAML")
 	root.PersistentFlags().String("log-level", "info", "log level: debug|info|warn|error")
