@@ -1,0 +1,19 @@
+cluster:
+  name: hbase-single
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+versions: { hadoop: 3.3.6, zookeeper: 3.8.4, hbase: 2.5.8 }
+ssh: { user: hadoop, private_key: ~/.ssh/id_rsa }
+hosts:
+  - { name: n1, address: 127.0.0.1 }
+roles:
+  namenode:     [n1]
+  datanode:     [n1]
+  zookeeper:    [n1]
+  hbase_master: [n1]
+  regionserver: [n1]
+overrides:
+  hdfs:
+    replication: 1
