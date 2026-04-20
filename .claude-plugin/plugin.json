@@ -1,0 +1,12 @@
+{
+  "name": "hadoop-cli",
+  "version": "1.0.0",
+  "description": "Bootstrap and manage an HBase cluster (HDFS + ZooKeeper + HBase) via hadoop-cli.",
+  "skills": [
+    { "path": "skills/hbase-cluster-bootstrap" },
+    { "path": "skills/hbase-cluster-ops" }
+  ],
+  "requires": {
+    "bins": ["hadoop-cli"]
+  }
+}
