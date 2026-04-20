@@ -29,11 +29,13 @@ func (p *Progress) Errorf(host, format string, args ...any) {
 }
 
 func (p *Progress) writef(level, host, format string, args ...any) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	msg := fmt.Sprintf(format, args...)
 	prefix := level
 	if host != "" {
-		prefix = prefix + "[" + host + "] "
+		prefix += "[" + host + "] "
 	}
-	fmt.Fprintf(p.w, "%s%s\n", prefix, fmt.Sprintf(format, args...))
+	line := prefix + msg + "\n"
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	_, _ = io.WriteString(p.w, line)
 }

@@ -45,3 +45,42 @@ func TestEnvelope_FailureIncludesError(t *testing.T) {
 	require.Equal(t, "SSH_AUTH_FAILED", errObj["code"])
 	require.Equal(t, "node2", errObj["host"])
 }
+
+func TestEnvelope_AddHostFailureFlipsOK(t *testing.T) {
+	buf := &bytes.Buffer{}
+	env := NewEnvelope("install")
+	env.AddHost(HostResult{Host: "node1", OK: true, ElapsedMs: 10})
+	env.AddHost(HostResult{Host: "node2", OK: false, ElapsedMs: 20, Message: "ssh timeout"})
+	require.NoError(t, env.Write(buf))
+
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &decoded))
+	require.Equal(t, false, decoded["ok"])
+	require.Len(t, decoded["hosts"], 2)
+}
+
+func TestEnvelope_WithRunIDSerialized(t *testing.T) {
+	buf := &bytes.Buffer{}
+	env := NewEnvelope("start").WithRunID("20260420-123456-start")
+	require.NoError(t, env.Write(buf))
+
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &decoded))
+	require.Equal(t, "20260420-123456-start", decoded["run_id"])
+}
+
+func TestEnvelope_OmitsEmptyArraysAndSummary(t *testing.T) {
+	buf := &bytes.Buffer{}
+	require.NoError(t, NewEnvelope("status").Write(buf))
+
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &decoded))
+	_, hasHosts := decoded["hosts"]
+	_, hasSummary := decoded["summary"]
+	_, hasError := decoded["error"]
+	_, hasRunID := decoded["run_id"]
+	require.False(t, hasHosts)
+	require.False(t, hasSummary)
+	require.False(t, hasError)
+	require.False(t, hasRunID)
+}
