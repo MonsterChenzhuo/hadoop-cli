@@ -37,7 +37,7 @@ sudo install bin/hadoop-cli /usr/local/bin/
 Install the skills:
 ```bash
 # via npm/npx if published
-npx skills add yourorg/hadoop-cli -y -g
+npx skills add MonsterChenzhuo/hadoop-cli -y -g
 
 # or locally
 claude code skills install ./skills/hbase-cluster-bootstrap
@@ -61,12 +61,24 @@ the skill, generate the inventory, and drive `hadoop-cli` end to end.
 
 All commands emit one JSON envelope on stdout and human-readable progress on stderr.
 
-## Standalone ZooKeeper
+## Deploying components independently
 
-To bootstrap just a ZooKeeper ensemble (no HDFS, no HBase), declare it with
-`cluster.components` in the inventory. Only two shapes are supported today:
-`[zookeeper]` or `[zookeeper, hdfs, hbase]` (the default when the field is
-omitted).
+Use `cluster.components` in the inventory to pick any non-empty subset of
+`{zookeeper, hdfs, hbase}`. Omitting the field defaults to the full stack, so
+existing inventories continue to work unchanged. Deploying one component at a
+time is easier to control than bringing the whole cluster up in one shot.
+
+Dependency rules:
+
+- `hbase` requires `zookeeper` in the same inventory (HBase needs a ZK quorum).
+- `hbase` without `hdfs` requires `overrides.hbase.root_dir` set explicitly,
+  pointing at an external HDFS (or compatible storage).
+- `hdfs` and `zookeeper` have no dependencies in v1 (single-NN HDFS).
+
+Required roles/versions are validated only for components that are present —
+a ZooKeeper-only inventory does not need `versions.hadoop`, `roles.namenode`, etc.
+
+Example — standalone ZooKeeper ensemble:
 
 ```yaml
 cluster:
@@ -87,8 +99,8 @@ roles:
   zookeeper: [n1, n2, n3]
 ```
 
-The normal `preflight → install → configure → start` flow works unchanged;
-HDFS/HBase roles and version fields are not required in this mode.
+See `skills/hbase-cluster-bootstrap/references/examples/` for `zookeeper-only`,
+`hdfs-only`, and full-stack inventories.
 
 ## Scope (v1)
 

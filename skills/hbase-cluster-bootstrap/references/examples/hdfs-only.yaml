@@ -1,0 +1,24 @@
+cluster:
+  name: hdfs-dev
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+  components: [hdfs]
+versions:
+  hadoop: 3.3.6
+ssh:
+  port: 22
+  user: hadoop
+  private_key: ~/.ssh/id_rsa
+  parallelism: 8
+hosts:
+  - { name: node1, address: 10.0.0.11 }
+  - { name: node2, address: 10.0.0.12 }
+  - { name: node3, address: 10.0.0.13 }
+roles:
+  namenode: [node1]
+  datanode: [node1, node2, node3]
+overrides:
+  hdfs:
+    replication: 2

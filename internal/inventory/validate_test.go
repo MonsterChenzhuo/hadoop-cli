@@ -118,10 +118,60 @@ func TestValidate_ZKOnly_RejectsEvenZooKeeperCount(t *testing.T) {
 	require.Contains(t, err.Error(), "odd")
 }
 
-func TestValidate_RejectsUnsupportedComponentSet(t *testing.T) {
+func TestValidate_RejectsUnknownComponent(t *testing.T) {
 	inv := zkOnlyInv()
-	inv.Cluster.Components = []string{"zookeeper", "hbase"}
+	inv.Cluster.Components = []string{"zookeeper", "kafka"}
 	err := Validate(inv)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "cluster.components")
+	require.Contains(t, err.Error(), "unknown component")
+}
+
+func TestValidate_RejectsEmptyComponents(t *testing.T) {
+	inv := zkOnlyInv()
+	inv.Cluster.Components = nil
+	err := Validate(inv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "must not be empty")
+}
+
+func TestValidate_HDFSOnly_OK(t *testing.T) {
+	inv := baseInv()
+	inv.Cluster.Components = []string{"hdfs"}
+	inv.Versions.ZooKeeper = "" // not required
+	inv.Versions.HBase = ""     // not required
+	inv.Roles.ZooKeeper = nil
+	inv.Roles.HBaseMaster = nil
+	inv.Roles.RegionServer = nil
+	require.NoError(t, Validate(inv))
+}
+
+func TestValidate_HBaseRequiresZooKeeper(t *testing.T) {
+	inv := baseInv()
+	inv.Cluster.Components = []string{"hdfs", "hbase"}
+	inv.Versions.ZooKeeper = ""
+	inv.Roles.ZooKeeper = nil
+	err := Validate(inv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "hbase requires zookeeper")
+}
+
+func TestValidate_HBaseWithoutHDFSRequiresRootDir(t *testing.T) {
+	inv := baseInv()
+	inv.Cluster.Components = []string{"zookeeper", "hbase"}
+	inv.Versions.Hadoop = "" // HDFS not included
+	inv.Roles.NameNode = nil
+	inv.Roles.DataNode = nil
+	err := Validate(inv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "root_dir")
+}
+
+func TestValidate_HBaseWithoutHDFSAcceptsExternalRootDir(t *testing.T) {
+	inv := baseInv()
+	inv.Cluster.Components = []string{"zookeeper", "hbase"}
+	inv.Versions.Hadoop = ""
+	inv.Roles.NameNode = nil
+	inv.Roles.DataNode = nil
+	inv.Overrides.HBase.RootDir = "hdfs://external-nn:8020/hbase"
+	require.NoError(t, Validate(inv))
 }

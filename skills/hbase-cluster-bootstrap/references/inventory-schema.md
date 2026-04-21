@@ -11,7 +11,7 @@ Top-level keys: `cluster`, `versions`, `ssh`, `hosts`, `roles`, `overrides`.
 | data_dir     | string | `/data/hadoop-cli`           | MUST be absolute; nn/dn/zk data, logs, pids live here |
 | user         | string | `hadoop`                     | Remote account running processes |
 | java_home    | string | `/usr/lib/jvm/java-11`       | Checked by preflight; JDK 8 or 11 |
-| components   | list   | `[zookeeper]`                | Optional. Supported values: `[zookeeper]` (standalone ZK) or `[zookeeper, hdfs, hbase]`. Omitted → full stack. |
+| components   | list   | `[zookeeper]`                | Optional. Any non-empty subset of `{zookeeper, hdfs, hbase}`. Omitted → full stack. `hbase` requires `zookeeper`; `hbase` without `hdfs` requires `overrides.hbase.root_dir`. |
 
 ## `versions` (required)
 
