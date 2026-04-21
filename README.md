@@ -61,6 +61,35 @@ the skill, generate the inventory, and drive `hadoop-cli` end to end.
 
 All commands emit one JSON envelope on stdout and human-readable progress on stderr.
 
+## Standalone ZooKeeper
+
+To bootstrap just a ZooKeeper ensemble (no HDFS, no HBase), declare it with
+`cluster.components` in the inventory. Only two shapes are supported today:
+`[zookeeper]` or `[zookeeper, hdfs, hbase]` (the default when the field is
+omitted).
+
+```yaml
+cluster:
+  name: zk-dev
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+  components: [zookeeper]
+versions:
+  zookeeper: 3.8.4
+ssh: { user: hadoop, private_key: ~/.ssh/id_rsa }
+hosts:
+  - { name: n1, address: 10.0.0.1 }
+  - { name: n2, address: 10.0.0.2 }
+  - { name: n3, address: 10.0.0.3 }
+roles:
+  zookeeper: [n1, n2, n3]
+```
+
+The normal `preflight → install → configure → start` flow works unchanged;
+HDFS/HBase roles and version fields are not required in this mode.
+
 ## Scope (v1)
 
 - Single NameNode only. No HDFS HA.

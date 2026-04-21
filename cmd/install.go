@@ -18,7 +18,11 @@ func newInstallCmd() *cobra.Command {
 			component, _ := cmd.Flags().GetString("component")
 			ctx := backgroundCtx(cmd)
 			env := output.NewEnvelope("install").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, false, false) {
+			comps, err := componentsForInv(rc.Inv, component, false, false)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				rc.Progress.Infof("", "installing %s ...", comp.Name())
 				aggregate(env, comp.Install(ctx, rc.Env))
 			}

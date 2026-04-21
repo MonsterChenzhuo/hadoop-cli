@@ -18,7 +18,11 @@ func newStatusCmd() *cobra.Command {
 			component, _ := cmd.Flags().GetString("component")
 			ctx := backgroundCtx(cmd)
 			env := output.NewEnvelope("status").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, false, false) {
+			comps, err := componentsForInv(rc.Inv, component, false, false)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				aggregate(env, comp.Status(ctx, rc.Env))
 			}
 			_ = rc.Env.Run.SaveResult(env)

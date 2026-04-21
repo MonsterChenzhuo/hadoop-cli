@@ -8,7 +8,14 @@ import (
 
 func baseInv() *Inventory {
 	return &Inventory{
-		Cluster:  Cluster{Name: "c", InstallDir: "/opt/hadoop-cli", DataDir: "/data/hadoop-cli", User: "hadoop", JavaHome: "/j"},
+		Cluster: Cluster{
+			Name:       "c",
+			InstallDir: "/opt/hadoop-cli",
+			DataDir:    "/data/hadoop-cli",
+			User:       "hadoop",
+			JavaHome:   "/j",
+			Components: []string{"zookeeper", "hdfs", "hbase"},
+		},
 		Versions: Versions{Hadoop: "3.3.6", ZooKeeper: "3.8.4", HBase: "2.5.8"},
 		SSH:      SSH{Port: 22, User: "hadoop", PrivateKey: "~/.ssh/id_rsa", Parallelism: 8},
 		Hosts: []Host{
@@ -67,4 +74,54 @@ func TestValidate_RejectsUnsupportedVersion(t *testing.T) {
 	inv.Versions.HBase = "1.0.0"
 	err := Validate(inv)
 	require.Error(t, err)
+}
+
+func zkOnlyInv() *Inventory {
+	return &Inventory{
+		Cluster: Cluster{
+			Name:       "zk",
+			InstallDir: "/opt/hadoop-cli",
+			DataDir:    "/data/hadoop-cli",
+			User:       "hadoop",
+			JavaHome:   "/j",
+			Components: []string{"zookeeper"},
+		},
+		Versions: Versions{ZooKeeper: "3.8.4"},
+		SSH:      SSH{Port: 22, User: "hadoop", PrivateKey: "~/.ssh/id_rsa", Parallelism: 8},
+		Hosts: []Host{
+			{Name: "n1", Address: "10.0.0.1"},
+			{Name: "n2", Address: "10.0.0.2"},
+			{Name: "n3", Address: "10.0.0.3"},
+		},
+		Roles: Roles{
+			ZooKeeper: []string{"n1", "n2", "n3"},
+		},
+	}
+}
+
+func TestValidate_ZKOnly_OK(t *testing.T) {
+	require.NoError(t, Validate(zkOnlyInv()))
+}
+
+func TestValidate_ZKOnly_IgnoresMissingHadoopAndHBaseVersions(t *testing.T) {
+	inv := zkOnlyInv()
+	require.Empty(t, inv.Versions.Hadoop)
+	require.Empty(t, inv.Versions.HBase)
+	require.NoError(t, Validate(inv))
+}
+
+func TestValidate_ZKOnly_RejectsEvenZooKeeperCount(t *testing.T) {
+	inv := zkOnlyInv()
+	inv.Roles.ZooKeeper = []string{"n1", "n2"}
+	err := Validate(inv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "odd")
+}
+
+func TestValidate_RejectsUnsupportedComponentSet(t *testing.T) {
+	inv := zkOnlyInv()
+	inv.Cluster.Components = []string{"zookeeper", "hbase"}
+	err := Validate(inv)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cluster.components")
 }

@@ -21,6 +21,12 @@ type Report struct {
 func Run(ctx context.Context, inv *inventory.Inventory, runner *orchestrator.Runner) (*Report, error) {
 	hosts := inv.AllRoleHosts()
 
+	ports := portsToCheck(inv)
+	portTokens := make([]string, len(ports))
+	for i, p := range ports {
+		portTokens[i] = fmt.Sprintf("%d", p)
+	}
+
 	checks := []struct {
 		name     string
 		cmd      string
@@ -34,15 +40,11 @@ func Run(ctx context.Context, inv *inventory.Inventory, runner *orchestrator.Run
 		{
 			name: "preflight-ports",
 			cmd: fmt.Sprintf(`set -e
-for p in %d %d %d %d %d %d %d; do
+for p in %s; do
   if (echo > /dev/tcp/127.0.0.1/$p) 2>/dev/null; then echo "PORT_BUSY:$p"; exit 1; fi
 done
 echo ok
-`,
-				inv.Overrides.HDFS.NameNodeRPC, inv.Overrides.HDFS.NameNodeHTTP,
-				inv.Overrides.ZooKeeper.ClientPort,
-				inv.Overrides.HBase.MasterPort, inv.Overrides.HBase.MasterInfoPort,
-				inv.Overrides.HBase.RSPort, inv.Overrides.HBase.RSInfoPort),
+`, strings.Join(portTokens, " ")),
 			failCode: errs.CodePreflightPortBusy,
 		},
 		{
@@ -69,4 +71,28 @@ echo ok
 		}
 	}
 	return &Report{OK: true, Results: allResults}, nil
+}
+
+// portsToCheck returns the TCP ports preflight should verify are free, based
+// on which components are declared in the inventory.
+func portsToCheck(inv *inventory.Inventory) []int {
+	var ports []int
+	if inv.HasComponent("zookeeper") {
+		ports = append(ports, inv.Overrides.ZooKeeper.ClientPort)
+	}
+	if inv.HasComponent("hdfs") {
+		ports = append(ports,
+			inv.Overrides.HDFS.NameNodeRPC,
+			inv.Overrides.HDFS.NameNodeHTTP,
+		)
+	}
+	if inv.HasComponent("hbase") {
+		ports = append(ports,
+			inv.Overrides.HBase.MasterPort,
+			inv.Overrides.HBase.MasterInfoPort,
+			inv.Overrides.HBase.RSPort,
+			inv.Overrides.HBase.RSInfoPort,
+		)
+	}
+	return ports
 }

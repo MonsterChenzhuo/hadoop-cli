@@ -1,11 +1,12 @@
 package inventory
 
 type Cluster struct {
-	Name       string `yaml:"name"`
-	InstallDir string `yaml:"install_dir"`
-	DataDir    string `yaml:"data_dir"`
-	User       string `yaml:"user"`
-	JavaHome   string `yaml:"java_home"`
+	Name       string   `yaml:"name"`
+	InstallDir string   `yaml:"install_dir"`
+	DataDir    string   `yaml:"data_dir"`
+	User       string   `yaml:"user"`
+	JavaHome   string   `yaml:"java_home"`
+	Components []string `yaml:"components"`
 }
 
 type Versions struct {
@@ -73,6 +74,17 @@ type Inventory struct {
 	Hosts     []Host    `yaml:"hosts"`
 	Roles     Roles     `yaml:"roles"`
 	Overrides Overrides `yaml:"overrides"`
+}
+
+// HasComponent reports whether the named component is part of this cluster.
+// Names are matched case-insensitively.
+func (i *Inventory) HasComponent(name string) bool {
+	for _, c := range i.Cluster.Components {
+		if c == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (i *Inventory) HostByName(name string) (Host, bool) {

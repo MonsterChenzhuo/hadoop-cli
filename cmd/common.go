@@ -73,21 +73,30 @@ func registry(forceFormat bool) map[string]components.Component {
 	}
 }
 
-// componentsFor returns the components to act on, honoring --component filter and direction.
-func componentsFor(filter string, reverse bool, forceFormat bool) []components.Component {
+// componentsForInv returns the components to act on, intersected with the
+// components declared in the inventory and honoring --component filter and
+// direction. If filter names a component not in the inventory, it returns an
+// error so callers can surface a clear message instead of silently no-oping.
+func componentsForInv(inv *inventory.Inventory, filter string, reverse bool, forceFormat bool) ([]components.Component, error) {
 	reg := registry(forceFormat)
 	order := components.Ordered()
 	if reverse {
 		order = components.ReverseOrdered()
 	}
+	if filter != "" && !inv.HasComponent(filter) {
+		return nil, fmt.Errorf("--component %q is not declared in cluster.components %v", filter, inv.Cluster.Components)
+	}
 	var out []components.Component
 	for _, name := range order {
+		if !inv.HasComponent(name) {
+			continue
+		}
 		if filter != "" && filter != name {
 			continue
 		}
 		out = append(out, reg[name])
 	}
-	return out
+	return out, nil
 }
 
 func aggregate(env *output.Envelope, results []orchestrator.Result) {

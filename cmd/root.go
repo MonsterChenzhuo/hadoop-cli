@@ -11,7 +11,7 @@ func NewRootCmd() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "hadoop-cli",
 		Short:         "hadoop-cli bootstraps and manages HBase clusters (HDFS + ZooKeeper + HBase).",
-		Long:          "hadoop-cli is a single-binary CLI that installs, configures, starts, stops, and uninstalls an HBase cluster over SSH, driven by a YAML inventory.",
+		Long:          "hadoop-cli is a single-binary CLI that installs, configures, starts, stops, and uninstalls an HBase cluster (or a standalone ZooKeeper ensemble, via cluster.components) over SSH, driven by a YAML inventory.",
 		Version:       Version,
 		SilenceUsage:  true,
 		SilenceErrors: true,

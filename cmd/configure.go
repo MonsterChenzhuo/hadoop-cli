@@ -18,7 +18,11 @@ func newConfigureCmd() *cobra.Command {
 			component, _ := cmd.Flags().GetString("component")
 			ctx := backgroundCtx(cmd)
 			env := output.NewEnvelope("configure").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, false, false) {
+			comps, err := componentsForInv(rc.Inv, component, false, false)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				rc.Progress.Infof("", "configuring %s ...", comp.Name())
 				aggregate(env, comp.Configure(ctx, rc.Env))
 			}

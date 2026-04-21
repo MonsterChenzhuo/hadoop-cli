@@ -21,7 +21,11 @@ func newStartCmd() *cobra.Command {
 			ctx := backgroundCtx(cmd)
 
 			env := output.NewEnvelope("start").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, false, forceFormat) {
+			comps, err := componentsForInv(rc.Inv, component, false, forceFormat)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				rc.Progress.Infof("", "starting %s ...", comp.Name())
 				res := comp.Start(ctx, rc.Env)
 				aggregate(env, res)

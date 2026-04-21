@@ -1,0 +1,20 @@
+cluster:
+  name: zk-dev
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+  components: [zookeeper]
+versions:
+  zookeeper: 3.8.4
+ssh:
+  port: 22
+  user: hadoop
+  private_key: ~/.ssh/id_rsa
+  parallelism: 8
+hosts:
+  - { name: node1, address: 10.0.0.11 }
+  - { name: node2, address: 10.0.0.12 }
+  - { name: node3, address: 10.0.0.13 }
+roles:
+  zookeeper: [node1, node2, node3]

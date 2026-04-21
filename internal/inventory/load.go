@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -28,6 +29,24 @@ func LoadBytes(data []byte) (*Inventory, error) {
 }
 
 func applyDefaults(inv *Inventory) {
+	if len(inv.Cluster.Components) == 0 {
+		inv.Cluster.Components = []string{"zookeeper", "hdfs", "hbase"}
+	} else {
+		seen := make(map[string]struct{}, len(inv.Cluster.Components))
+		out := inv.Cluster.Components[:0]
+		for _, c := range inv.Cluster.Components {
+			lc := strings.ToLower(strings.TrimSpace(c))
+			if lc == "" {
+				continue
+			}
+			if _, dup := seen[lc]; dup {
+				continue
+			}
+			seen[lc] = struct{}{}
+			out = append(out, lc)
+		}
+		inv.Cluster.Components = out
+	}
 	if inv.SSH.Port == 0 {
 		inv.SSH.Port = 22
 	}

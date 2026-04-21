@@ -48,6 +48,51 @@ roles:
 	require.Equal(t, 2181, inv.Overrides.ZooKeeper.ClientPort)
 }
 
+func TestLoad_DefaultsComponentsToFullStack(t *testing.T) {
+	inv, err := LoadBytes([]byte(`
+cluster:
+  name: demo
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+versions: { hadoop: 3.3.6, zookeeper: 3.8.4, hbase: 2.5.8 }
+ssh: { user: hadoop, private_key: ~/.ssh/id_rsa }
+hosts:
+  - { name: n1, address: 127.0.0.1 }
+roles:
+  namenode: [n1]
+  datanode: [n1]
+  zookeeper: [n1]
+  hbase_master: [n1]
+  regionserver: [n1]
+`))
+	require.NoError(t, err)
+	require.Equal(t, []string{"zookeeper", "hdfs", "hbase"}, inv.Cluster.Components)
+}
+
+func TestLoad_NormalizesExplicitComponents(t *testing.T) {
+	inv, err := LoadBytes([]byte(`
+cluster:
+  name: zk
+  install_dir: /opt/hadoop-cli
+  data_dir: /data/hadoop-cli
+  user: hadoop
+  java_home: /usr/lib/jvm/java-11
+  components: [ZooKeeper, zookeeper]
+versions: { zookeeper: 3.8.4 }
+ssh: { user: hadoop, private_key: ~/.ssh/id_rsa }
+hosts:
+  - { name: n1, address: 127.0.0.1 }
+roles:
+  zookeeper: [n1]
+`))
+	require.NoError(t, err)
+	require.Equal(t, []string{"zookeeper"}, inv.Cluster.Components)
+	require.True(t, inv.HasComponent("zookeeper"))
+	require.False(t, inv.HasComponent("hdfs"))
+}
+
 func TestLoad_FailsOnUnknownField(t *testing.T) {
 	_, err := LoadBytes([]byte(`cluster: { name: x, install_dir: /a, data_dir: /b, user: u, java_home: /j }
 this_field_does_not_exist: 1

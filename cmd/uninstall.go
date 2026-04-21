@@ -19,7 +19,11 @@ func newUninstallCmd() *cobra.Command {
 			purge, _ := cmd.Flags().GetBool("purge-data")
 			ctx := backgroundCtx(cmd)
 			env := output.NewEnvelope("uninstall").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, true, false) {
+			comps, err := componentsForInv(rc.Inv, component, true, false)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				rc.Progress.Infof("", "uninstalling %s (purge_data=%v) ...", comp.Name(), purge)
 				aggregate(env, comp.Uninstall(ctx, rc.Env, purge))
 			}

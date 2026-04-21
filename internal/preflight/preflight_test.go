@@ -23,7 +23,11 @@ func (f *fakeExec) Execute(_ context.Context, host string, task orchestrator.Tas
 
 func baseInv() *inventory.Inventory {
 	return &inventory.Inventory{
-		Cluster: inventory.Cluster{DataDir: "/data/hadoop-cli", JavaHome: "/j"},
+		Cluster: inventory.Cluster{
+			DataDir:    "/data/hadoop-cli",
+			JavaHome:   "/j",
+			Components: []string{"zookeeper", "hdfs", "hbase"},
+		},
 		Hosts: []inventory.Host{
 			{Name: "n1", Address: "10.0.0.1"},
 		},
@@ -50,6 +54,19 @@ func TestRun_PassesWhenAllChecksOK(t *testing.T) {
 	rep, err := Run(context.Background(), baseInv(), runner)
 	require.NoError(t, err)
 	require.True(t, rep.OK)
+}
+
+func TestPortsToCheck_ZKOnly(t *testing.T) {
+	inv := baseInv()
+	inv.Cluster.Components = []string{"zookeeper"}
+	require.Equal(t, []int{2181}, portsToCheck(inv))
+}
+
+func TestPortsToCheck_FullStack(t *testing.T) {
+	require.Equal(t,
+		[]int{2181, 8020, 9870, 16000, 16010, 16020, 16030},
+		portsToCheck(baseInv()),
+	)
 }
 
 func TestRun_FailsWhenJDKMissing(t *testing.T) {

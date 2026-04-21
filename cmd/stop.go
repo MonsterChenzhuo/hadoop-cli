@@ -18,7 +18,11 @@ func newStopCmd() *cobra.Command {
 			component, _ := cmd.Flags().GetString("component")
 			ctx := backgroundCtx(cmd)
 			env := output.NewEnvelope("stop").WithRunID(rc.Env.Run.ID)
-			for _, comp := range componentsFor(component, true, false) {
+			comps, err := componentsForInv(rc.Inv, component, true, false)
+			if err != nil {
+				return err
+			}
+			for _, comp := range comps {
 				rc.Progress.Infof("", "stopping %s ...", comp.Name())
 				aggregate(env, comp.Stop(ctx, rc.Env))
 			}
