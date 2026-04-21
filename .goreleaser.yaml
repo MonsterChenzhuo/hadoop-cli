@@ -17,12 +17,16 @@ builds:
       - -s -w -X github.com/hadoop-cli/hadoop-cli/cmd.Version={{.Version}}
 
 archives:
-  - format: tar.gz
+  - id: targz
+    format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
       - LICENSE
       - skills/**/*
+  - id: binary
+    format: binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
