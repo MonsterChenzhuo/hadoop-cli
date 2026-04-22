@@ -118,6 +118,22 @@ func TestBuildExportCommand_RejectsNonHDFSCopyTo(t *testing.T) {
 	require.Contains(t, err.Error(), "hdfs://")
 }
 
+func TestBuildExportCommand_RejectsShellMetacharInCopyTo(t *testing.T) {
+	_, err := BuildExportCommand(invFull(), ExportOptions{
+		Name: "s", CopyTo: "hdfs://h/x; rm -rf /",
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsafe shell metacharacter")
+}
+
+func TestBuildExportCommand_RejectsSpaceInCopyTo(t *testing.T) {
+	_, err := BuildExportCommand(invFull(), ExportOptions{
+		Name: "s", CopyTo: "hdfs://h/a b",
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsafe shell metacharacter")
+}
+
 func TestBuildExportCommand_RejectsNegativeMappers(t *testing.T) {
 	neg := -1
 	_, err := BuildExportCommand(invFull(), ExportOptions{

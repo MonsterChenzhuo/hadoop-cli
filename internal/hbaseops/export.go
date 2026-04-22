@@ -27,6 +27,8 @@ func DeriveCopyToFromInventory(inv *inventory.Inventory) (string, error) {
 		return "", fmt.Errorf("destination inventory must have exactly 1 roles.namenode; got %d", n)
 	}
 	rpc := inv.Overrides.HDFS.NameNodeRPC
+	// Fallback for inventories not loaded via inventory.Load (e.g. constructed in tests);
+	// the production Load path fills this default to 8020 already.
 	if rpc == 0 {
 		rpc = 8020
 	}
@@ -41,6 +43,12 @@ func BuildExportCommand(inv *inventory.Inventory, opts ExportOptions) (string, e
 	}
 	if !strings.HasPrefix(opts.CopyTo, "hdfs://") {
 		return "", fmt.Errorf("--to must start with hdfs://, got %q", opts.CopyTo)
+	}
+	for _, r := range opts.CopyTo {
+		switch r {
+		case ' ', '\t', '\n', '\r', ';', '|', '`', '$', '"', '\'', '\\', '<', '>', '&', '(', ')':
+			return "", fmt.Errorf("--to contains unsafe shell metacharacter %q", r)
+		}
 	}
 	if opts.Mappers != nil && *opts.Mappers < 0 {
 		return "", fmt.Errorf("--mappers must be >= 0, got %d", *opts.Mappers)
@@ -64,6 +72,7 @@ func BuildExportCommand(inv *inventory.Inventory, opts ExportOptions) (string, e
 		parts = append(parts, "-overwrite")
 	}
 	if strings.TrimSpace(opts.ExtraArgs) != "" {
+		// appended unquoted; caller is responsible for safety
 		parts = append(parts, opts.ExtraArgs)
 	}
 
