@@ -20,6 +20,9 @@ metadata:
 | Restart one component      | `hadoop-cli stop --component hbase && hadoop-cli start --component hbase` |
 | Remove the install         | `hadoop-cli uninstall --inventory cluster.yaml`                        |
 | Nuke install AND data      | `hadoop-cli uninstall --purge-data --inventory cluster.yaml` (DESTRUCTIVE — confirm with the user first) |
+| 打快照 / take a snapshot           | `hadoop-cli snapshot --inventory cluster.yaml --table <ns:t> --name <snap>` |
+| 同步快照到 B 集群 / sync snapshot   | `hadoop-cli export-snapshot --inventory cluster.yaml --name <snap> --to hdfs://<nn>:8020/hbase` |
+| 同步到 B 集群 (已有 inventory)     | `hadoop-cli export-snapshot --inventory src.yaml --name <snap> --to-inventory dst.yaml` |
 
 ## Rules of engagement
 
@@ -30,3 +33,16 @@ metadata:
   user confirmation.
 - After any failure, record the `run_id` from the JSON envelope and point
   the user at `~/.hadoop-cli/runs/<run-id>/`.
+
+## 快照 / Snapshots
+
+用户说"给 X 表打个快照"/"把这个快照同步到集群 B" → 用
+`hadoop-cli snapshot` 和 `hadoop-cli export-snapshot`。
+
+- 用户只给一个 HDFS 地址 → `--to hdfs://...`.
+- 用户提到目标集群的 `cluster.yaml` 路径 → `--to-inventory <path>`.
+- 默认 `roles.hbase_master[0]` 执行；如果用户说"在 nodeX 上跑"再用
+  `--on nodeX`。
+- 目标集群必须只有 1 个 NameNode（当前单 NN 形态）。
+- Cluster has no YARN; large snapshots will be slow under LocalJobRunner.
+  Warn the user and offer `--mappers` / `--bandwidth` tuning.
