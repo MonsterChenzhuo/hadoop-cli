@@ -28,5 +28,6 @@ func NewRootCmd() *cobra.Command {
 	root.AddCommand(newStatusCmd())
 	root.AddCommand(newUninstallCmd())
 	root.AddCommand(newSnapshotCmd())
+	root.AddCommand(newExportSnapshotCmd())
 	return root
 }
