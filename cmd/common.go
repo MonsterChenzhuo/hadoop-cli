@@ -99,6 +99,10 @@ func componentsForInv(inv *inventory.Inventory, filter string, reverse bool, for
 	return out, nil
 }
 
+func aggregateOne(env *output.Envelope, r orchestrator.Result) {
+	aggregate(env, []orchestrator.Result{r})
+}
+
 func aggregate(env *output.Envelope, results []orchestrator.Result) {
 	for _, r := range results {
 		host := output.HostResult{
