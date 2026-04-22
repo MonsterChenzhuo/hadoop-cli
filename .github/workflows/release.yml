@@ -1,7 +1,12 @@
 name: release
 on:
   push:
+    branches: [main]
     tags: ['v*']
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -15,6 +20,24 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+      - name: Configure git identity
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+      - name: Compute and push next tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git fetch --tags --force origin
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+          latest=${latest:-v0.0.0}
+          ver=${latest#v}
+          major=${ver%%.*}; rest=${ver#*.}
+          minor=${rest%%.*}; patch=${rest#*.}
+          next="v${major}.${minor}.$((patch+1))"
+          echo "latest tag: $latest -> next: $next"
+          git tag -a "$next" -m "$next"
+          git push origin "$next"
       - uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
