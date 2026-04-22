@@ -1,12 +1,37 @@
 package hbaseops
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/hadoop-cli/hadoop-cli/internal/inventory"
+	"github.com/hadoop-cli/hadoop-cli/internal/orchestrator"
 	"github.com/stretchr/testify/require"
 )
+
+func TestExportSnapshot_DispatchesToMaster(t *testing.T) {
+	fe := &fakeExec{}
+	runner := orchestrator.NewRunner(fe, 1)
+	res, err := ExportSnapshot(context.Background(), runner, invFull(), ExportOptions{
+		Name:   "snap1",
+		CopyTo: "hdfs://h:8020/hbase",
+	}, "")
+	require.NoError(t, err)
+	require.True(t, res.OK)
+	require.Equal(t, "m1", fe.seenHost)
+	require.Contains(t, fe.seenCmd, "-snapshot snap1")
+}
+
+func TestExportSnapshot_HostOverride(t *testing.T) {
+	fe := &fakeExec{}
+	runner := orchestrator.NewRunner(fe, 1)
+	_, err := ExportSnapshot(context.Background(), runner, invFull(), ExportOptions{
+		Name: "snap1", CopyTo: "hdfs://h:8020/hbase",
+	}, "rs1")
+	require.NoError(t, err)
+	require.Equal(t, "rs1", fe.seenHost)
+}
 
 func destInv(nn string, rpc int) *inventory.Inventory {
 	inv := invWithHosts([]string{"nm"}, []string{"rs1"})

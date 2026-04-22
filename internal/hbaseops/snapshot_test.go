@@ -1,12 +1,62 @@
 package hbaseops
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/hadoop-cli/hadoop-cli/internal/inventory"
+	"github.com/hadoop-cli/hadoop-cli/internal/orchestrator"
 	"github.com/stretchr/testify/require"
 )
+
+type fakeExec struct {
+	seenHost string
+	seenCmd  string
+	result   orchestrator.Result
+}
+
+func (f *fakeExec) Execute(_ context.Context, host string, t orchestrator.Task) orchestrator.Result {
+	f.seenHost = host
+	f.seenCmd = t.Cmd
+	if f.result.Host == "" {
+		f.result.Host = host
+		f.result.OK = true
+	}
+	return f.result
+}
+
+func TestSnapshot_DispatchesToMaster(t *testing.T) {
+	fe := &fakeExec{}
+	runner := orchestrator.NewRunner(fe, 1)
+	res, err := Snapshot(context.Background(), runner, invFull(), SnapshotOptions{
+		Table: "t", Name: "s",
+	}, "")
+	require.NoError(t, err)
+	require.True(t, res.OK)
+	require.Equal(t, "m1", fe.seenHost)
+	require.Contains(t, fe.seenCmd, "snapshot 't','s'")
+}
+
+func TestSnapshot_OverrideHostWins(t *testing.T) {
+	fe := &fakeExec{}
+	runner := orchestrator.NewRunner(fe, 1)
+	_, err := Snapshot(context.Background(), runner, invFull(), SnapshotOptions{
+		Table: "t", Name: "s",
+	}, "rs1")
+	require.NoError(t, err)
+	require.Equal(t, "rs1", fe.seenHost)
+}
+
+func TestSnapshot_ValidationErrorsPropagate(t *testing.T) {
+	fe := &fakeExec{}
+	runner := orchestrator.NewRunner(fe, 1)
+	_, err := Snapshot(context.Background(), runner, invFull(), SnapshotOptions{
+		Table: "", Name: "s",
+	}, "")
+	require.Error(t, err)
+	require.Empty(t, fe.seenHost, "should reject before SSH")
+}
 
 func invFull() *inventory.Inventory {
 	inv := invWithHosts([]string{"m1"}, []string{"rs1"})

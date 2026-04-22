@@ -1,11 +1,13 @@
 package hbaseops
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/hadoop-cli/hadoop-cli/internal/components/hbase"
 	"github.com/hadoop-cli/hadoop-cli/internal/inventory"
+	"github.com/hadoop-cli/hadoop-cli/internal/orchestrator"
 )
 
 type SnapshotOptions struct {
@@ -32,6 +34,23 @@ export JAVA_HOME=%s
 echo "%s" | %s/bin/hbase shell -n
 `, inv.Cluster.JavaHome, cmd, hbase.Home(inv))
 	return script, nil
+}
+
+// Snapshot runs an hbase shell `snapshot` command on the target host.
+func Snapshot(ctx context.Context, runner *orchestrator.Runner, inv *inventory.Inventory, opts SnapshotOptions, onHost string) (orchestrator.Result, error) {
+	host, err := PickHost(inv, onHost)
+	if err != nil {
+		return orchestrator.Result{}, err
+	}
+	script, err := BuildSnapshotScript(inv, opts)
+	if err != nil {
+		return orchestrator.Result{}, err
+	}
+	results := runner.Run(ctx, []string{host}, orchestrator.Task{
+		Name: "hbase-snapshot",
+		Cmd:  script,
+	})
+	return results[0], nil
 }
 
 func validateIdent(field, v string) error {

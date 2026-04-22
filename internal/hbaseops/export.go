@@ -1,11 +1,13 @@
 package hbaseops
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/hadoop-cli/hadoop-cli/internal/components/hbase"
 	"github.com/hadoop-cli/hadoop-cli/internal/inventory"
+	"github.com/hadoop-cli/hadoop-cli/internal/orchestrator"
 )
 
 type ExportOptions struct {
@@ -70,4 +72,21 @@ export JAVA_HOME=%s
 %s
 `, inv.Cluster.JavaHome, strings.Join(parts, " "))
 	return script, nil
+}
+
+// ExportSnapshot runs `hbase ExportSnapshot` on the target host.
+func ExportSnapshot(ctx context.Context, runner *orchestrator.Runner, inv *inventory.Inventory, opts ExportOptions, onHost string) (orchestrator.Result, error) {
+	host, err := PickHost(inv, onHost)
+	if err != nil {
+		return orchestrator.Result{}, err
+	}
+	script, err := BuildExportCommand(inv, opts)
+	if err != nil {
+		return orchestrator.Result{}, err
+	}
+	results := runner.Run(ctx, []string{host}, orchestrator.Task{
+		Name: "hbase-export-snapshot",
+		Cmd:  script,
+	})
+	return results[0], nil
 }
