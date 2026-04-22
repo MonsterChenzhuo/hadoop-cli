@@ -1,5 +1,7 @@
 # hadoop-cli
 
+> 中文版: [README.zh-CN.md](README.zh-CN.md)
+
 Single-binary Go CLI that bootstraps and manages an HBase cluster
 (HDFS single-NN + ZooKeeper + HBase) on a multi-node Linux/macOS environment
 via agentless SSH — designed so [Claude Code](https://claude.com/claude-code)
