@@ -41,5 +41,8 @@ func validateIdent(field, v string) error {
 	if strings.ContainsAny(v, "'\n\r") {
 		return fmt.Errorf("%s must not contain single quote or newline: %q", field, v)
 	}
+	if strings.ContainsAny(v, " \t") {
+		return fmt.Errorf("%s must not contain whitespace: %q", field, v)
+	}
 	return nil
 }
