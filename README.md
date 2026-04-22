@@ -58,8 +58,29 @@ the skill, generate the inventory, and drive `hadoop-cli` end to end.
 | stop         | Reverse order |
 | status       | Process presence on every host |
 | uninstall    | Stop and remove install_dir (`--purge-data` also wipes data_dir) |
+| snapshot        | Take an online HBase snapshot via hbase shell |
+| export-snapshot | Sync a snapshot to a remote HDFS via hbase ExportSnapshot |
 
 All commands emit one JSON envelope on stdout and human-readable progress on stderr.
+
+## Snapshot & sync / 快照与同步
+
+```bash
+# Create a snapshot / 创建快照
+hadoop-cli snapshot --inventory cluster.yaml \
+    --table rta:tag_by_uid --name rta_tag_by_uid_1030
+
+# Export to a remote HDFS URL / 同步到远端 HDFS
+hadoop-cli export-snapshot --inventory cluster.yaml \
+    --name rta_tag_by_uid_1030 --to hdfs://10.57.1.211:8020/hbase
+
+# Export using the destination cluster.yaml / 用目标集群 inventory 推导地址
+hadoop-cli export-snapshot --inventory src.yaml \
+    --name rta_tag_by_uid_1030 --to-inventory dst.yaml
+```
+
+See [docs/snapshot.md](docs/snapshot.md) (English) or
+[docs/snapshot.zh-CN.md](docs/snapshot.zh-CN.md) (中文) for full details.
 
 ## Deploying components independently
 
