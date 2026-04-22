@@ -63,6 +63,11 @@ func newExportSnapshotCmd() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("load --to-inventory: %w", err)
 				}
+				for _, nn := range dst.Roles.NameNode {
+					if _, ok := dst.HostByName(nn); !ok {
+						return fmt.Errorf("--to-inventory: roles.namenode references unknown host %q (declare it under hosts:)", nn)
+					}
+				}
 				url, err := hbaseops.DeriveCopyToFromInventory(dst)
 				if err != nil {
 					return err

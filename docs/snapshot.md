@@ -48,6 +48,8 @@ echo "snapshot 'rta:tag_by_uid','rta_tag_by_uid_1030'" | $HBASE_HOME/bin/hbase s
 
 `--to` and `--to-inventory` are mutually exclusive; exactly one is required.
 
+> **Note on `--extra-args`:** args are appended raw; the native `hbase ExportSnapshot` takes the *last* occurrence of any duplicated flag. Don't duplicate flags that `hadoop-cli` already exposes (`-mappers`, `-bandwidth`, `-overwrite`, `-snapshot`, `-copy-to`) — the result is implementation-defined.
+
 Examples:
 
 ```bash

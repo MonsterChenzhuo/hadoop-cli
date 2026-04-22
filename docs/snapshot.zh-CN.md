@@ -48,6 +48,8 @@ echo "snapshot 'rta:tag_by_uid','rta_tag_by_uid_1030'" | $HBASE_HOME/bin/hbase s
 
 `--to` 与 `--to-inventory` 互斥，必须二选一。
 
+> **关于 `--extra-args`：** 会原样追加到命令末尾；原生 `hbase ExportSnapshot` 对重复出现的同名参数取**最后一个**。请不要重复传 `hadoop-cli` 已经暴露的参数（`-mappers`/`-bandwidth`/`-overwrite`/`-snapshot`/`-copy-to`），否则行为未定义。
+
 示例：
 
 ```bash
