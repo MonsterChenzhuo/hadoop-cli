@@ -122,9 +122,9 @@ func TestParseSHA512_AcceptsMultipleFormats(t *testing.T) {
 	want := strings.Repeat("ab", 64) // 128 hex chars
 
 	cases := map[string]string{
-		"GNU coreutils":  want + "  apache-zookeeper-3.8.4-bin.tar.gz\n",
-		"BSD / openssl":  "SHA512 (apache-zookeeper-3.8.4-bin.tar.gz) = " + want + "\n",
-		"uppercase GNU":  strings.ToUpper(want) + "  hadoop-3.3.6.tar.gz\n",
+		"GNU coreutils": want + "  apache-zookeeper-3.8.4-bin.tar.gz\n",
+		"BSD / openssl": "SHA512 (apache-zookeeper-3.8.4-bin.tar.gz) = " + want + "\n",
+		"uppercase GNU": strings.ToUpper(want) + "  hadoop-3.3.6.tar.gz\n",
 		"gpg print-md": "apache-zookeeper-3.8.4-bin.tar.gz: " +
 			strings.ToUpper(want[:32]) + "\n  " +
 			strings.ToUpper(want[32:64]) + "\n  " +
