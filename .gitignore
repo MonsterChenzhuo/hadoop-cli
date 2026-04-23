@@ -6,4 +6,5 @@
 .vscode/
 .DS_Store
 .claude/
+.worktrees/
 cluster.yaml
