@@ -12,9 +12,9 @@ var supportedVersions = struct {
 	ZooKeeper []string
 	HBase     []string
 }{
-	Hadoop:    []string{"3.3.4", "3.3.5", "3.3.6"},
+	Hadoop:    []string{"3.3.4", "3.3.5", "3.3.6", "3.4.1"},
 	ZooKeeper: []string{"3.7.2", "3.8.3", "3.8.4"},
-	HBase:     []string{"2.5.5", "2.5.7", "2.5.8"},
+	HBase:     []string{"2.5.5", "2.5.7", "2.5.8", "2.5.13-hadoop3"},
 }
 
 // knownComponents lists the components this CLI knows how to deploy.

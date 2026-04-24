@@ -1,6 +1,9 @@
 package packages
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Spec struct {
 	Name      string // hadoop | zookeeper | hbase
@@ -14,10 +17,16 @@ type Spec struct {
 // supportedVersions gates installs to versions we've actually tested.
 // Checksums are no longer embedded — they are fetched from the Apache
 // sidecar `.sha512` file next to each tarball.
+//
+// HBase 2.5.x ships two flavors of the binary tarball: the default
+// (`hbase-<ver>-bin.tar.gz`, Hadoop-2 dependencies) and the Hadoop 3 variant
+// (`hbase-<ver>-hadoop3-bin.tar.gz`). The latter is expressed here as
+// `<ver>-hadoop3`; HBaseSpec splits on `-` so the URL path segment stays
+// `<ver>` while the filename keeps the full variant.
 var supportedVersions = map[string]map[string]struct{}{
-	"hadoop":    {"3.3.6": {}},
+	"hadoop":    {"3.3.6": {}, "3.4.1": {}},
 	"zookeeper": {"3.8.4": {}},
-	"hbase":     {"2.5.8": {}},
+	"hbase":     {"2.5.8": {}, "2.5.13-hadoop3": {}},
 }
 
 func buildSpec(name, version, url, filename string) (Spec, error) {
@@ -48,8 +57,14 @@ func ZooKeeperSpec(version string) (Spec, error) {
 }
 
 func HBaseSpec(version string) (Spec, error) {
+	// The URL path segment on archive.apache.org is the base release number
+	// (e.g. `2.5.13`), not the flavored variant (`2.5.13-hadoop3`).
+	base := version
+	if i := strings.Index(version, "-"); i > 0 {
+		base = version[:i]
+	}
 	return buildSpec("hbase", version,
-		fmt.Sprintf("https://archive.apache.org/dist/hbase/%s/hbase-%s-bin.tar.gz", version, version),
+		fmt.Sprintf("https://archive.apache.org/dist/hbase/%s/hbase-%s-bin.tar.gz", base, version),
 		fmt.Sprintf("hbase-%s-bin.tar.gz", version),
 	)
 }

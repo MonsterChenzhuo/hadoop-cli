@@ -15,7 +15,7 @@ Top-level keys: `cluster`, `versions`, `ssh`, `hosts`, `roles`, `overrides`.
 
 ## `versions` (required)
 
-Supported (v1): Hadoop 3.3.4/3.3.5/3.3.6; ZooKeeper 3.7.2/3.8.3/3.8.4; HBase 2.5.5/2.5.7/2.5.8.
+Supported (v1): Hadoop 3.3.4 / 3.3.5 / 3.3.6 / 3.4.1; ZooKeeper 3.7.2 / 3.8.3 / 3.8.4; HBase 2.5.5 / 2.5.7 / 2.5.8 / 2.5.13-hadoop3. For HBase 2.5.13 pair it with Hadoop 3.x — the `hbase-2.5.13-hadoop3` tarball ships with Hadoop 3 client libraries.
 
 `versions.hadoop` and `versions.hbase` are only required when the
 corresponding component is in `cluster.components`; `versions.zookeeper` is

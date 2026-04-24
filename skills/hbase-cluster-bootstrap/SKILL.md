@@ -38,7 +38,8 @@ declare**, so a ZK-only inventory does not need `versions.hadoop`,
 
 | Goal                            | `components` value                     | Example inventory |
 |---------------------------------|----------------------------------------|-------------------|
-| Full HBase stack (default)      | omit or `[zookeeper, hdfs, hbase]`     | `references/examples/3-node-dev.yaml` |
+| Full HBase stack (default, Hadoop 3.3.6 + HBase 2.5.8) | omit or `[zookeeper, hdfs, hbase]` | `references/examples/3-node-dev.yaml` |
+| Full HBase stack on Hadoop 3.4.1 + HBase 2.5.13-hadoop3 | omit or `[zookeeper, hdfs, hbase]` | `references/examples/3-node-hadoop3.yaml` |
 | Standalone ZooKeeper ensemble   | `[zookeeper]`                          | `references/examples/zookeeper-only.yaml` |
 | Standalone HDFS                 | `[hdfs]`                               | `references/examples/hdfs-only.yaml` |
 | Single host (lab)               | omit                                   | `references/examples/single-host.yaml` |
