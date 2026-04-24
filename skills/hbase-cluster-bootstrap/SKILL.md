@@ -17,7 +17,9 @@ metadata:
 - `/etc/hosts` is consistent across nodes (hostnames resolve to the same addresses).
 - The `cluster.user` account exists on every node and owns `cluster.install_dir` and `cluster.data_dir` (or the user has sudo — set `ssh.sudo: true` if so).
 
-If any of the above is unknown, run `hadoop-cli preflight --inventory cluster.yaml` first and fix whatever fails.
+If any of the above is unknown, run `hadoop-cli preflight` first and fix whatever fails.
+
+> Place the generated `cluster.yaml` in the CWD or save it as `~/.hadoop-cli/cluster.yaml` so the remaining commands resolve it automatically. Lookup order: `--inventory <path>` → `$HADOOPCLI_INVENTORY` → `./cluster.yaml` → `~/.hadoop-cli/cluster.yaml`.
 
 ## Pick a deployment shape
 
@@ -52,25 +54,25 @@ drive each component with `--component <name>` on `install` / `configure` /
    example above that matches the user's intent and edit from there.
 2. **Preflight**:
    ```bash
-   hadoop-cli preflight --inventory cluster.yaml
+   hadoop-cli preflight
    ```
    Expected JSON: `{"command":"preflight","ok":true,...}`. On failure see `references/error-codes.md`.
 3. **Install** (downloads tarballs, sftp to each node, extracts):
    ```bash
-   hadoop-cli install --inventory cluster.yaml
+   hadoop-cli install
    ```
    Idempotent: rerunning when nothing changed is a no-op.
 4. **Configure** (renders and pushes config files):
    ```bash
-   hadoop-cli configure --inventory cluster.yaml
+   hadoop-cli configure
    ```
 5. **Start** (honors declared components, in ZK → HDFS → HBase order; first HDFS run auto-formats NameNode):
    ```bash
-   hadoop-cli start --inventory cluster.yaml
+   hadoop-cli start
    ```
 6. **Verify**:
    ```bash
-   hadoop-cli status --inventory cluster.yaml
+   hadoop-cli status
    ```
    Expected: every process that belongs to a declared component is listed; no `ok:false` hosts.
 
@@ -82,20 +84,20 @@ targeted by the flag are left untouched.
 
 ```bash
 # 1. Bring up ZooKeeper first and verify
-hadoop-cli install   --inventory cluster.yaml --component zookeeper
-hadoop-cli configure --inventory cluster.yaml --component zookeeper
-hadoop-cli start     --inventory cluster.yaml --component zookeeper
-hadoop-cli status    --inventory cluster.yaml --component zookeeper
+hadoop-cli install   --component zookeeper
+hadoop-cli configure --component zookeeper
+hadoop-cli start     --component zookeeper
+hadoop-cli status    --component zookeeper
 
 # 2. Then HDFS
-hadoop-cli install   --inventory cluster.yaml --component hdfs
-hadoop-cli configure --inventory cluster.yaml --component hdfs
-hadoop-cli start     --inventory cluster.yaml --component hdfs
+hadoop-cli install   --component hdfs
+hadoop-cli configure --component hdfs
+hadoop-cli start     --component hdfs
 
 # 3. Finally HBase (ZK + HDFS must be healthy first)
-hadoop-cli install   --inventory cluster.yaml --component hbase
-hadoop-cli configure --inventory cluster.yaml --component hbase
-hadoop-cli start     --inventory cluster.yaml --component hbase
+hadoop-cli install   --component hbase
+hadoop-cli configure --component hbase
+hadoop-cli start     --component hbase
 ```
 
 `--component <name>` must match a component declared in `cluster.components`,

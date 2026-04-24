@@ -98,19 +98,21 @@ sudo install bin/hadoop-cli /usr/local/bin/
 
 ## Quick Start
 
-1. **Write `cluster.yaml`** — pick an example from [`skills/hbase-cluster-bootstrap/references/examples/`](./skills/hbase-cluster-bootstrap/references/examples/).
+1. **Write `cluster.yaml`** — pick an example from [`skills/hbase-cluster-bootstrap/references/examples/`](./skills/hbase-cluster-bootstrap/references/examples/). Save it in the current directory or as `~/.hadoop-cli/cluster.yaml` and you can skip `--inventory` on every command.
 2. **Verify SSH reachability** — `ssh -i ~/.ssh/id_rsa hadoop@node1 true` on every node listed in `hosts:`.
 3. **Bootstrap the cluster**:
 
    ```bash
-   hadoop-cli preflight --inventory cluster.yaml   # JDK / port / disk / clock checks
-   hadoop-cli install   --inventory cluster.yaml   # download, distribute, extract tarballs
-   hadoop-cli configure --inventory cluster.yaml   # render and push config files
-   hadoop-cli start     --inventory cluster.yaml   # ZK → HDFS → HBase in order
-   hadoop-cli status    --inventory cluster.yaml   # process presence on every host
+   hadoop-cli preflight    # JDK / port / disk / clock checks
+   hadoop-cli install      # download, distribute, extract tarballs
+   hadoop-cli configure    # render and push config files
+   hadoop-cli start        # ZK → HDFS → HBase in order
+   hadoop-cli status       # process presence on every host
    ```
 
-Every command writes one JSON envelope to stdout (stable schema: `command`, `ok`, `summary`, `hosts`, `error`, `run_id`) and human-readable progress to stderr. Per-run logs land in `~/.hadoop-cli/runs/<run-id>/`.
+Inventory is resolved in this order: `--inventory <path>` → `$HADOOPCLI_INVENTORY` → `./cluster.yaml` → `~/.hadoop-cli/cluster.yaml`. The resolved path is printed to stderr (`using inventory: …`) and echoed in every JSON envelope as `inventory_path`.
+
+Every command writes one JSON envelope to stdout (stable schema: `command`, `ok`, `summary`, `hosts`, `error`, `run_id`, `inventory_path`) and human-readable progress to stderr. Per-run logs land in `~/.hadoop-cli/runs/<run-id>/`.
 
 ## Use with Claude Code
 
@@ -150,11 +152,11 @@ Use `--component zookeeper,hdfs,hbase` to restrict a command to a subset of what
 
 ```bash
 # Create a snapshot
-hadoop-cli snapshot --inventory cluster.yaml \
+hadoop-cli snapshot \
     --table rta:tag_by_uid --name rta_tag_by_uid_1030
 
 # Export to a remote HDFS URL
-hadoop-cli export-snapshot --inventory cluster.yaml \
+hadoop-cli export-snapshot \
     --name rta_tag_by_uid_1030 --to hdfs://10.57.1.211:8020/hbase
 
 # Export using the destination cluster.yaml to derive the URL

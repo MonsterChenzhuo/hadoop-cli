@@ -34,7 +34,7 @@ Local cluster smoke: write a `cluster.yaml` (examples in `skills/hbase-cluster-b
 ### Command layer (`cmd/`)
 - Each subcommand is a file (`preflight.go`, `install.go`, ...). They all go through `cmd/common.go`'s `prepare()` which loads + validates the inventory, builds an SSH `Pool`, wraps it in an `orchestrator.Runner`, and creates a `runlog.Run` record. Returned `runCtx` is the shared handle.
 - `componentsForInv()` intersects inventory-declared components with the optional `--component` filter and returns them in dependency order (or reverse for stop/uninstall). Order lives in `internal/components/component.go`: `Ordered()` = `[zookeeper, hdfs, hbase]`.
-- Every subcommand emits exactly one JSON envelope on stdout (`internal/output`) and human-readable progress on stderr. The envelope shape (`command`, `ok`, `summary`, `hosts`, `error`, `run_id`) is stable and consumed by Claude via the skill.
+- Every subcommand emits exactly one JSON envelope on stdout (`internal/output`) and human-readable progress on stderr. The envelope shape (`command`, `ok`, `summary`, `hosts`, `error`, `run_id`, `inventory_path`) is stable and consumed by Claude via the skill.
 
 ### Components (`internal/components/{zookeeper,hdfs,hbase}`)
 Each implements the `Component` interface: `Name/Hosts/Install/Configure/Start/Stop/Status/Uninstall`. Subcommands iterate over selected components and aggregate per-host `orchestrator.Result`s into the envelope via `aggregate()`. Components are expected to be **idempotent** — rerunning a successful install/configure is a no-op.
@@ -43,7 +43,7 @@ Each implements the `Component` interface: `Name/Hosts/Install/Configure/Start/S
 `orchestrator.Runner` fans a `Task` out across hosts with bounded parallelism (`ssh.parallelism` in inventory, default 4) and a 5-minute default per-task timeout. `SSHExecutor` drives a pooled `ssh.Pool`; one connection per host, reused. Components never touch SSH directly — they build `orchestrator.Task` values and hand them to the runner.
 
 ### Inventory (`internal/inventory`)
-`Load` parses YAML, `Validate` enforces structural rules (odd ZK count, single namenode in v1, required versions/roles per declared component). `HasComponent(name)` is the accessor subcommands use when deciding what to act on.
+`Load` parses YAML, `Validate` enforces structural rules (odd ZK count, single namenode in v1, required versions/roles per declared component). `HasComponent(name)` is the accessor subcommands use when deciding what to act on. `Resolve(flag)` (`resolve.go`) implements the default lookup chain — it picks the first hit among `--inventory <path>`, `$HADOOPCLI_INVENTORY`, `./cluster.yaml`, `~/.hadoop-cli/cluster.yaml` and returns the path plus a short source label. `prepare()` calls it, announces the result on stderr (`using inventory: <path> (<source>)`), and surfaces the chosen path on every envelope as `inventory_path`. `--to-inventory` on `export-snapshot` stays explicit (two inventories).
 
 ### Run log (`internal/runlog`)
 Every invocation gets a `~/.hadoop-cli/runs/<run-id>/` directory. Per-host stdout/stderr from failed tasks lands there; the final envelope is saved as `result.json` via `SaveResult`. When debugging `install` failures, read `<run-id>/<host>.stderr`.

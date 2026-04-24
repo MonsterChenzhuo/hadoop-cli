@@ -98,19 +98,21 @@ sudo install bin/hadoop-cli /usr/local/bin/
 
 ## 快速开始
 
-1. **写一份 `cluster.yaml`** — 参考 [`skills/hbase-cluster-bootstrap/references/examples/`](./skills/hbase-cluster-bootstrap/references/examples/) 下的示例。
+1. **写一份 `cluster.yaml`** — 参考 [`skills/hbase-cluster-bootstrap/references/examples/`](./skills/hbase-cluster-bootstrap/references/examples/) 下的示例。把它放在当前目录，或保存为 `~/.hadoop-cli/cluster.yaml`，之后所有命令都不需要再带 `--inventory`。
 2. **确认 SSH 可达** — 对每个 `hosts:` 下的节点执行 `ssh -i ~/.ssh/id_rsa hadoop@node1 true`。
 3. **引导集群**：
 
    ```bash
-   hadoop-cli preflight --inventory cluster.yaml   # JDK / 端口 / 磁盘 / 时钟检查
-   hadoop-cli install   --inventory cluster.yaml   # 下载、分发、解压 tarball
-   hadoop-cli configure --inventory cluster.yaml   # 渲染并推送配置文件
-   hadoop-cli start     --inventory cluster.yaml   # 按 ZK → HDFS → HBase 顺序启动
-   hadoop-cli status    --inventory cluster.yaml   # 在每台主机上检查进程
+   hadoop-cli preflight    # JDK / 端口 / 磁盘 / 时钟检查
+   hadoop-cli install      # 下载、分发、解压 tarball
+   hadoop-cli configure    # 渲染并推送配置文件
+   hadoop-cli start        # 按 ZK → HDFS → HBase 顺序启动
+   hadoop-cli status       # 在每台主机上检查进程
    ```
 
-每条命令在 stdout 输出一段 JSON envelope（稳定字段：`command`、`ok`、`summary`、`hosts`、`error`、`run_id`），在 stderr 输出人类可读的进度。每次运行的详细日志位于 `~/.hadoop-cli/runs/<run-id>/`。
+inventory 的查找顺序：`--inventory <path>` → `$HADOOPCLI_INVENTORY` → `./cluster.yaml` → `~/.hadoop-cli/cluster.yaml`。解析结果会在 stderr 打印一行 `using inventory: …`，并回填到 JSON envelope 的 `inventory_path` 字段。
+
+每条命令在 stdout 输出一段 JSON envelope（稳定字段：`command`、`ok`、`summary`、`hosts`、`error`、`run_id`、`inventory_path`），在 stderr 输出人类可读的进度。每次运行的详细日志位于 `~/.hadoop-cli/runs/<run-id>/`。
 
 ## 配合 Claude Code 使用
 
@@ -149,11 +151,11 @@ claude code skills install ~/.hadoop-cli/skills/hbase-cluster-ops
 
 ```bash
 # 创建快照
-hadoop-cli snapshot --inventory cluster.yaml \
+hadoop-cli snapshot \
     --table rta:tag_by_uid --name rta_tag_by_uid_1030
 
 # 同步到远端 HDFS
-hadoop-cli export-snapshot --inventory cluster.yaml \
+hadoop-cli export-snapshot \
     --name rta_tag_by_uid_1030 --to hdfs://10.57.1.211:8020/hbase
 
 # 用目标集群 inventory 推导地址

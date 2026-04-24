@@ -14,15 +14,17 @@ metadata:
 
 | User intent                | Command                                                                |
 |----------------------------|------------------------------------------------------------------------|
-| Check health               | `hadoop-cli status --inventory cluster.yaml`                           |
-| Stop the cluster           | `hadoop-cli stop --inventory cluster.yaml`                             |
-| Start it again             | `hadoop-cli start --inventory cluster.yaml`                            |
+| Check health               | `hadoop-cli status`                                                    |
+| Stop the cluster           | `hadoop-cli stop`                                                      |
+| Start it again             | `hadoop-cli start`                                                     |
 | Restart one component      | `hadoop-cli stop --component hbase && hadoop-cli start --component hbase` |
-| Remove the install         | `hadoop-cli uninstall --inventory cluster.yaml`                        |
-| Nuke install AND data      | `hadoop-cli uninstall --purge-data --inventory cluster.yaml` (DESTRUCTIVE — confirm with the user first) |
-| 打快照 / take a snapshot           | `hadoop-cli snapshot --inventory cluster.yaml --table <ns:t> --name <snap>` |
-| 同步快照到 B 集群 / sync snapshot   | `hadoop-cli export-snapshot --inventory cluster.yaml --name <snap> --to hdfs://<nn>:8020/hbase` |
+| Remove the install         | `hadoop-cli uninstall`                                                 |
+| Nuke install AND data      | `hadoop-cli uninstall --purge-data` (DESTRUCTIVE — confirm with the user first) |
+| 打快照 / take a snapshot           | `hadoop-cli snapshot --table <ns:t> --name <snap>` |
+| 同步快照到 B 集群 / sync snapshot   | `hadoop-cli export-snapshot --name <snap> --to hdfs://<nn>:8020/hbase` |
 | 同步到 B 集群 (已有 inventory)     | `hadoop-cli export-snapshot --inventory src.yaml --name <snap> --to-inventory dst.yaml` |
+
+> Inventory is resolved from `$HADOOPCLI_INVENTORY`, `./cluster.yaml`, or `~/.hadoop-cli/cluster.yaml` unless `--inventory <path>` is passed. Pass `--inventory` explicitly when running against a non-default cluster or from an unrelated CWD; the export-snapshot row with `--to-inventory` keeps `--inventory src.yaml` because two inventories are involved.
 
 ## Rules of engagement
 
