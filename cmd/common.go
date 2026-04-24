@@ -19,17 +19,32 @@ import (
 )
 
 type runCtx struct {
-	Inv      *inventory.Inventory
-	Runner   *orchestrator.Runner
-	Pool     *sshx.Pool
-	Env      components.Env
-	Command  string
-	Progress *output.Progress
+	Inv           *inventory.Inventory
+	InventoryPath string
+	Runner        *orchestrator.Runner
+	Pool          *sshx.Pool
+	Env           components.Env
+	Command       string
+	Progress      *output.Progress
+}
+
+// envelope returns a new output.Envelope pre-populated with fields uniform
+// across subcommands (currently: the resolved inventory path).
+func (c *runCtx) envelope(command string) *output.Envelope {
+	e := output.NewEnvelope(command)
+	e.InventoryPath = c.InventoryPath
+	return e
 }
 
 func prepare(cmd *cobra.Command, command string) (*runCtx, error) {
-	invPath, _ := cmd.Flags().GetString("inventory")
+	invFlag, _ := cmd.Flags().GetString("inventory")
 	noColor, _ := cmd.Flags().GetBool("no-color")
+
+	invPath, source, err := inventory.Resolve(invFlag)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Fprintf(os.Stderr, "using inventory: %s (%s)\n", invPath, source)
 
 	inv, err := inventory.Load(invPath)
 	if err != nil {
@@ -56,12 +71,13 @@ func prepare(cmd *cobra.Command, command string) (*runCtx, error) {
 	}
 
 	return &runCtx{
-		Inv:      inv,
-		Runner:   runner,
-		Pool:     pool,
-		Env:      env,
-		Command:  command,
-		Progress: output.NewProgress(os.Stderr, noColor),
+		Inv:           inv,
+		InventoryPath: invPath,
+		Runner:        runner,
+		Pool:          pool,
+		Env:           env,
+		Command:       command,
+		Progress:      output.NewProgress(os.Stderr, noColor),
 	}, nil
 }
 

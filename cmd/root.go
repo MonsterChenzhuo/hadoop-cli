@@ -16,7 +16,7 @@ func NewRootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.PersistentFlags().String("inventory", "cluster.yaml", "path to cluster inventory YAML")
+	root.PersistentFlags().String("inventory", "", "path to cluster inventory YAML (default: $HADOOPCLI_INVENTORY, ./cluster.yaml, ~/.hadoop-cli/cluster.yaml)")
 	root.PersistentFlags().String("log-level", "info", "log level: debug|info|warn|error")
 	root.PersistentFlags().Bool("no-color", false, "disable color in stderr progress output")
 
