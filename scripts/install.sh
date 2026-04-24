@@ -40,10 +40,19 @@ esac
 
 if [ -z "$VERSION" ]; then
   info "resolving latest release from github.com/$REPO"
-  VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-    | grep -m1 '"tag_name"' \
-    | sed -E 's/.*"tag_name"\s*:\s*"([^"]+)".*/\1/')
-  [ -n "$VERSION" ] || die "could not determine latest release tag"
+  # Prefer the /releases/latest redirect: no API rate limit and no pipe-to-grep
+  # SIGPIPE trap (which in `set -o pipefail` mode killed the old flow with
+  # `curl: (23) Failure writing output to destination`).
+  redirect=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+    "https://github.com/${REPO}/releases/latest" 2>/dev/null || true)
+  VERSION="${redirect##*/}"
+  # Fall back to the GitHub API if the redirect shape changed or the host only
+  # reaches api.github.com (some mirrored environments).
+  if [ -z "$VERSION" ] || [ "$VERSION" = "latest" ]; then
+    api_resp=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null || true)
+    VERSION=$(awk -F'"' '/"tag_name":/ { print $4; exit }' <<<"$api_resp")
+  fi
+  [ -n "$VERSION" ] || die "could not determine latest release tag; pin with VERSION=vX.Y.Z"
 fi
 ver_no_v="${VERSION#v}"
 
