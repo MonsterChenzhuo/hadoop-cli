@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/hadoop-cli/hadoop-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +19,7 @@ func newStartCmd() *cobra.Command {
 			forceFormat, _ := cmd.Flags().GetBool("force-format")
 			ctx := backgroundCtx(cmd)
 
-			env := output.NewEnvelope("start").WithRunID(rc.Env.Run.ID)
+			env := rc.envelope("start").WithRunID(rc.Env.Run.ID)
 			comps, err := componentsForInv(rc.Inv, component, false, forceFormat)
 			if err != nil {
 				return err

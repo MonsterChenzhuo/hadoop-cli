@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/hadoop-cli/hadoop-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +17,7 @@ func newUninstallCmd() *cobra.Command {
 			component, _ := cmd.Flags().GetString("component")
 			purge, _ := cmd.Flags().GetBool("purge-data")
 			ctx := backgroundCtx(cmd)
-			env := output.NewEnvelope("uninstall").WithRunID(rc.Env.Run.ID)
+			env := rc.envelope("uninstall").WithRunID(rc.Env.Run.ID)
 			comps, err := componentsForInv(rc.Inv, component, true, false)
 			if err != nil {
 				return err

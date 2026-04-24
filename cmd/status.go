@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/hadoop-cli/hadoop-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +16,7 @@ func newStatusCmd() *cobra.Command {
 			defer rc.Pool.Close()
 			component, _ := cmd.Flags().GetString("component")
 			ctx := backgroundCtx(cmd)
-			env := output.NewEnvelope("status").WithRunID(rc.Env.Run.ID)
+			env := rc.envelope("status").WithRunID(rc.Env.Run.ID)
 			comps, err := componentsForInv(rc.Inv, component, false, false)
 			if err != nil {
 				return err

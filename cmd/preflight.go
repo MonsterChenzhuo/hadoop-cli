@@ -18,7 +18,7 @@ func newPreflightCmd() *cobra.Command {
 			defer rc.Pool.Close()
 
 			ctx := backgroundCtx(cmd)
-			env := output.NewEnvelope("preflight").WithRunID(rc.Env.Run.ID)
+			env := rc.envelope("preflight").WithRunID(rc.Env.Run.ID)
 			rep, runErr := preflight.Run(ctx, rc.Inv, rc.Runner)
 			if rep != nil {
 				aggregate(env, rep.Results)

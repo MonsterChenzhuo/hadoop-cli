@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/hadoop-cli/hadoop-cli/internal/hbaseops"
-	"github.com/hadoop-cli/hadoop-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +34,7 @@ func newSnapshotCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			env := output.NewEnvelope("snapshot").WithRunID(rc.Env.Run.ID)
+			env := rc.envelope("snapshot").WithRunID(rc.Env.Run.ID)
 			aggregateOne(env, res)
 			_ = rc.Env.Run.SaveResult(env)
 			writeEnvelope(env)
