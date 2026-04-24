@@ -79,8 +79,21 @@ func TestEnvelope_OmitsEmptyArraysAndSummary(t *testing.T) {
 	_, hasSummary := decoded["summary"]
 	_, hasError := decoded["error"]
 	_, hasRunID := decoded["run_id"]
+	_, hasInvPath := decoded["inventory_path"]
 	require.False(t, hasHosts)
 	require.False(t, hasSummary)
 	require.False(t, hasError)
 	require.False(t, hasRunID)
+	require.False(t, hasInvPath)
+}
+
+func TestEnvelope_InventoryPathSerialized(t *testing.T) {
+	buf := &bytes.Buffer{}
+	env := NewEnvelope("status")
+	env.InventoryPath = "/tmp/cluster.yaml"
+	require.NoError(t, env.Write(buf))
+
+	var decoded map[string]any
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &decoded))
+	require.Equal(t, "/tmp/cluster.yaml", decoded["inventory_path"])
 }

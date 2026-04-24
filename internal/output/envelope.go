@@ -20,12 +20,13 @@ type EnvelopeError struct {
 }
 
 type Envelope struct {
-	Command string         `json:"command"`
-	OK      bool           `json:"ok"`
-	Summary map[string]any `json:"summary,omitempty"`
-	Hosts   []HostResult   `json:"hosts,omitempty"`
-	Error   *EnvelopeError `json:"error,omitempty"`
-	RunID   string         `json:"run_id,omitempty"`
+	Command       string         `json:"command"`
+	OK            bool           `json:"ok"`
+	Summary       map[string]any `json:"summary,omitempty"`
+	Hosts         []HostResult   `json:"hosts,omitempty"`
+	Error         *EnvelopeError `json:"error,omitempty"`
+	RunID         string         `json:"run_id,omitempty"`
+	InventoryPath string         `json:"inventory_path,omitempty"`
 }
 
 func NewEnvelope(command string) *Envelope {
