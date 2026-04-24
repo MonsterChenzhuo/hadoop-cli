@@ -8,7 +8,7 @@
 
 Single-binary Go CLI that bootstraps and manages an HBase cluster (HDFS single-NN + ZooKeeper + HBase) across multi-node Linux/macOS hosts over agentless SSH — designed so [Claude Code](https://claude.com/claude-code) can drive the whole lifecycle from one natural-language request.
 
-[Install](#installation) · [Upgrade](#upgrade) · [Quick Start](#quick-start) · [Claude Code](#use-with-claude-code) · [Commands](#commands) · [Snapshot](#snapshot--sync) · [Components](#deploy-components-independently) · [Scope](#scope-v1)
+[Install](#installation) · [Upgrade](#upgrade) · [Quick Start](#quick-start) · [Claude Code](#use-with-claude-code) · [Commands](#commands) · [Components](#deploy-components-independently) · [Scope](#scope-v1)
 
 ## Why hadoop-cli?
 
@@ -130,7 +130,7 @@ Then ask Claude something like **"搭一个 3 节点 HBase 测试集群"** — i
 | Skill                        | Description                                                         |
 | ---------------------------- | ------------------------------------------------------------------- |
 | `hbase-cluster-bootstrap`    | Author `cluster.yaml` and run the full bootstrap lifecycle          |
-| `hbase-cluster-ops`          | Day-2 operations: status checks, snapshots, export, uninstall       |
+| `hbase-cluster-ops`          | Day-2 operations: status checks, start/stop, uninstall              |
 
 ## Commands
 
@@ -143,28 +143,8 @@ Then ask Claude something like **"搭一个 3 节点 HBase 测试集群"** — i
 | `stop`            | Reverse order                                                           |
 | `status`          | Process presence on every host                                          |
 | `uninstall`       | Stop and remove `install_dir` (`--purge-data` also wipes `data_dir`)    |
-| `snapshot`        | Take an online HBase snapshot via `hbase shell`                         |
-| `export-snapshot` | Sync a snapshot to a remote HDFS via `hbase ExportSnapshot`             |
 
 Use `--component zookeeper,hdfs,hbase` to restrict a command to a subset of what the inventory declares.
-
-## Snapshot & Sync
-
-```bash
-# Create a snapshot
-hadoop-cli snapshot \
-    --table rta:tag_by_uid --name rta_tag_by_uid_1030
-
-# Export to a remote HDFS URL
-hadoop-cli export-snapshot \
-    --name rta_tag_by_uid_1030 --to hdfs://10.57.1.211:8020/hbase
-
-# Export using the destination cluster.yaml to derive the URL
-hadoop-cli export-snapshot --inventory src.yaml \
-    --name rta_tag_by_uid_1030 --to-inventory dst.yaml
-```
-
-Full details in [docs/snapshot.md](docs/snapshot.md) (English) / [docs/snapshot.zh-CN.md](docs/snapshot.zh-CN.md) (中文).
 
 ## Deploy Components Independently
 

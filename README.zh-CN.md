@@ -8,7 +8,7 @@
 
 单二进制的 Go CLI，通过无 agent SSH 在多节点 Linux/macOS 环境上引导并管理 HBase 集群（HDFS 单 NameNode + ZooKeeper + HBase）。设计目标是让 [Claude Code](https://claude.com/claude-code) 用一句话驱动整个生命周期。
 
-[安装](#安装) · [升级](#升级) · [快速开始](#快速开始) · [Claude Code](#配合-claude-code-使用) · [命令](#命令) · [快照](#快照与同步) · [组件](#独立部署单个组件) · [范围](#范围v1)
+[安装](#安装) · [升级](#升级) · [快速开始](#快速开始) · [Claude Code](#配合-claude-code-使用) · [命令](#命令) · [组件](#独立部署单个组件) · [范围](#范围v1)
 
 ## 为什么选 hadoop-cli？
 
@@ -129,7 +129,7 @@ claude code skills install ~/.hadoop-cli/skills/hbase-cluster-ops
 | Skill                        | 说明                                                  |
 | ---------------------------- | ----------------------------------------------------- |
 | `hbase-cluster-bootstrap`    | 生成 `cluster.yaml` 并完成首次引导                   |
-| `hbase-cluster-ops`          | 日常运维：状态检查、快照、导出、卸载                 |
+| `hbase-cluster-ops`          | 日常运维：状态检查、启动/停止、卸载                  |
 
 ## 命令
 
@@ -142,28 +142,8 @@ claude code skills install ~/.hadoop-cli/skills/hbase-cluster-ops
 | `stop`            | 反向停止                                                               |
 | `status`          | 在每台主机上检查进程                                                   |
 | `uninstall`       | 停止并移除 `install_dir`（`--purge-data` 同时清空 `data_dir`）         |
-| `snapshot`        | 通过 `hbase shell` 打在线快照                                          |
-| `export-snapshot` | 通过 `hbase ExportSnapshot` 把快照同步到远端 HDFS                      |
 
 用 `--component zookeeper,hdfs,hbase` 可将命令限定在 inventory 所声明组件的子集上。
-
-## 快照与同步
-
-```bash
-# 创建快照
-hadoop-cli snapshot \
-    --table rta:tag_by_uid --name rta_tag_by_uid_1030
-
-# 同步到远端 HDFS
-hadoop-cli export-snapshot \
-    --name rta_tag_by_uid_1030 --to hdfs://10.57.1.211:8020/hbase
-
-# 用目标集群 inventory 推导地址
-hadoop-cli export-snapshot --inventory src.yaml \
-    --name rta_tag_by_uid_1030 --to-inventory dst.yaml
-```
-
-详细说明见 [docs/snapshot.zh-CN.md](docs/snapshot.zh-CN.md)（中文）/ [docs/snapshot.md](docs/snapshot.md)（English）。
 
 ## 独立部署单个组件
 

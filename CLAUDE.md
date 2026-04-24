@@ -43,16 +43,13 @@ Each implements the `Component` interface: `Name/Hosts/Install/Configure/Start/S
 `orchestrator.Runner` fans a `Task` out across hosts with bounded parallelism (`ssh.parallelism` in inventory, default 4) and a 5-minute default per-task timeout. `SSHExecutor` drives a pooled `ssh.Pool`; one connection per host, reused. Components never touch SSH directly — they build `orchestrator.Task` values and hand them to the runner.
 
 ### Inventory (`internal/inventory`)
-`Load` parses YAML, `Validate` enforces structural rules (odd ZK count, single namenode in v1, required versions/roles per declared component). `HasComponent(name)` is the accessor subcommands use when deciding what to act on. `Resolve(flag)` (`resolve.go`) implements the default lookup chain — it picks the first hit among `--inventory <path>`, `$HADOOPCLI_INVENTORY`, `./cluster.yaml`, `~/.hadoop-cli/cluster.yaml` and returns the path plus a short source label. `prepare()` calls it, announces the result on stderr (`using inventory: <path> (<source>)`), and surfaces the chosen path on every envelope as `inventory_path`. `--to-inventory` on `export-snapshot` stays explicit (two inventories).
+`Load` parses YAML, `Validate` enforces structural rules (odd ZK count, single namenode in v1, required versions/roles per declared component). `HasComponent(name)` is the accessor subcommands use when deciding what to act on. `Resolve(flag)` (`resolve.go`) implements the default lookup chain — it picks the first hit among `--inventory <path>`, `$HADOOPCLI_INVENTORY`, `./cluster.yaml`, `~/.hadoop-cli/cluster.yaml` and returns the path plus a short source label. `prepare()` calls it, announces the result on stderr (`using inventory: <path> (<source>)`), and surfaces the chosen path on every envelope as `inventory_path`.
 
 ### Run log (`internal/runlog`)
 Every invocation gets a `~/.hadoop-cli/runs/<run-id>/` directory. Per-host stdout/stderr from failed tasks lands there; the final envelope is saved as `result.json` via `SaveResult`. When debugging `install` failures, read `<run-id>/<host>.stderr`.
 
 ### Packages cache (`internal/packages`)
 Upstream tarballs are fetched into `~/.hadoop-cli/packages/` (via `DefaultCacheDir()`), verified, and distributed to each host from the control machine. The cache is content-addressed — changing `versions.*` in inventory triggers a re-fetch.
-
-### HBase ops (`internal/hbaseops`)
-Snapshot + export-snapshot live here, not in `internal/components/hbase`, because they run against a live cluster rather than installing anything. `cmd/snapshot.go` and `cmd/export_snapshot.go` are thin wrappers. `BuildSnapshotScript` / `BuildExportCommand` / `DeriveCopyToFromInventory` / `PickHost` are the pieces worth knowing about when changing those commands. Shell arguments that reach `hbase shell` are metacharacter-rejected (`hbaseops` has injection guards) — do not weaken them.
 
 ### Preflight (`internal/preflight`)
 Standalone read-only checks (JDK/port/disk/clock). Invoked by `cmd/preflight.go`. A design is in progress to layer a `plan` subcommand + facts safety gate on top of these checks — see `docs/superpowers/specs/2026-04-23-plan-subcommand-design.md`.
@@ -69,6 +66,5 @@ Standalone read-only checks (JDK/port/disk/clock). Invoked by `cmd/preflight.go`
 ## Documentation
 
 - `README.md` / `README.zh-CN.md` — user-facing quick start.
-- `docs/snapshot.md` / `docs/snapshot.zh-CN.md` — snapshot + export-snapshot.
 - `docs/superpowers/specs/` — design docs for non-trivial features (TDD plans live in `docs/superpowers/plans/`).
 - `skills/hbase-cluster-bootstrap/SKILL.md` + `skills/hbase-cluster-ops/SKILL.md` — what Claude Code reads to drive the CLI. Update these whenever user-visible CLI behavior or recommended flow changes.
